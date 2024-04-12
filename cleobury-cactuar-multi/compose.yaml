@@ -1,0 +1,56 @@
+version: '3'
+
+services:
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    restart: unless-stopped
+    ports:
+      - "15671:15671"
+      - "15672:15672"
+      - "1883:1883"
+      - "5672:5672"
+    environment:
+      RABBITMQ_PLUGINS: "rabbitmq_management rabbitmq_mqtt"
+
+
+  webhook:
+      image: cleobury/pywebhook:multi
+      restart: unless-stopped
+      ports:
+        - 5000:5000
+      environment:
+        - RABBITMQ_HOST=host.docker.internal
+      depends_on:
+        - rabbitmq
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    environment:
+      - NGROK_AUTHTOKEN=TOKEN_HERE
+    command: http --domain=STATIC_DOMAIN_HERE 5000
+    network_mode: "host"
+    stdin_open: true
+    tty: true
+    depends_on:
+      - webhook
+  
+  rabbitlistener:
+    image: cleobury/rabbitlistener:multi
+    restart: unless-stopped
+    environment:
+      - INFLUXDB_TOKEN=TOKEN_HERE
+      - RABBITMQ_HOST=host.docker.internal
+      - INFLUXDB_URL=host.docker.internal:8086
+    depends_on:
+      - rabbitmq
+
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+      
+volumes:
+  influxdb_data:
