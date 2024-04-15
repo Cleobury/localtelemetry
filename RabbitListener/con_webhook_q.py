@@ -21,6 +21,9 @@ def flatten_json(json_obj, parent_key='', sep='_'):
         if isinstance(value, dict):
             items.update(flatten_json(value, new_key, sep=sep))
         else:
+            # Check if the value is an integer, if so, convert it to float
+            if isinstance(value, int):
+                value = float(value)
             items[new_key] = value
     return items
 
