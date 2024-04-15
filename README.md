@@ -143,4 +143,5 @@ Will now be:
 
 ### 5) Run
 
-Have fun 🙂
+send a json payload to your ngrok address with the suffix /webhook and you can then start viewing data in your influxdb on port 8086 on the devices local ip 🙂
+
